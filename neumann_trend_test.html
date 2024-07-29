@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neumann Trend Test</title>
+    <style>
+        /* 基本样式设置 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #chart {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Neumann Trend Test</h1>
+    <!-- 用户输入数据的输入框 -->
+    <input type="text" id="dataInput" placeholder="Enter data points separated by commas">
+    <input type="text" id="timeInput" placeholder="Enter time separated by commas">
+    <!-- 执行纽曼测试的按钮 -->
+    <button onclick="performNeumannTest()">Perform Test</button>
+    <!-- 结果表格 -->
+    <table id="resultTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>Data Point</th>
+                <th>Time(h)</th>
+                <th>PG</th>
+                <th>Trend (Y/N)</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody">
+            <!-- 结果将插入到这里 -->
+        </tbody>
+    </table>
+    <!-- 用于绘制图表的区域 -->
+    <div id="chart"></div>
+</div>
+
+<script>
+    function performNeumannTest() {
+        // 获取用户输入的数据点和时间点
+        const dataInput = document.getElementById('dataInput').value;
+        const timeInput = document.getElementById('timeInput').value;
+        
+        if (!dataInput || !timeInput) {
+            return alert('Please enter both data points and time.');
+        }
+        
+        // 将数据和时间转换为数组
+        const data = dataInput.split(',').map(Number);
+        const time = timeInput.split(',').map(Number);
+        const n = data.length;
+        
+        if (n < 4 || n !== time.length) {
+            return alert('Please enter at least 4 data points and ensure they match the number of time entries.');
+        }
+
+        // 纽曼趋势标准值 (这些值可以根据需要调整)
+        const p = [0.7805, 0.8204, 0.8902, 0.9359];
+        let resultHTML = '';
+        let trendData = [];
+
+        // 计算每个数据集的PG值和趋势
+        for (let i = 3; i < n; i++) {
+            let sum0 = 0, sum1 = 0, sum2 = 0;
+
+            // 计算x0的值
+            for (let j = 0; j <= i; j++) {
+                sum0 += data[j];
+            }
+            const x0 = sum0 / (i + 1);
+
+            // 计算sum1和sum2
+            for (let k = 0; k <= i; k++) {
+                if (k < i) sum1 += Math.pow((data[k] - data[k + 1]), 2);
+                sum2 += Math.pow((data[k] - x0), 2);
+            }
+
+            // 计算PG值
+            const PG = sum1 / sum2;
+            const trend = PG <= p[i - 3] ? 'Yes' : 'No';  // 判断是否存在下降趋势
+            trendData.push({ time: time[i], PG: PG  });
+            //6147338,6147785,6154157,6141375,6127575,6118354,6090916    0,1,2,5,10,18,24
+            //6126811,6120857,6112046,6100250,6089047,6070963,6057447
+            //7582457,7586934,7570156,7553261,7549265     0,2,5,10,24
+            //7342482,7311815,7308719,7282647,7283729
+
+            // 将结果插入表格
+            resultHTML += `<tr>
+                <td>${data[i]}</td>
+                <td>${time[i]}</td>
+                <td>${PG.toFixed(4)}</td>
+                <td>${trend}</td>
+            </tr>`;
+        }
+
+        // 显示结果表格
+        document.getElementById('resultBody').innerHTML = resultHTML;
+        document.getElementById('resultTable').style.display = 'table';
+
+        // 绘制图表
+        drawChart(trendData);
+    }
+
+    function drawChart(data) {
+        // 设置图表的尺寸和边距
+        const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // 清除之前的图表
+        d3.select("#chart").html("");
+
+        // 创建SVG容器
+        const svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // 设置x轴
+        const x = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.time)])
+            .range([0, width]);
+
+        // 设置y轴
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.PG)])
+            .range([height, 0]);
+
+        // 绘制x轴
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x).ticks(24))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "end");
+
+        // 绘制y轴
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        // 绘制折线
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 2)
+            .attr("d", d3.line()
+                .x(d => x(d.time))
+                .y(d => y(d.PG))
+            );
+
+        // 绘制数据点
+        svg.selectAll(".dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("cx", d => x(d.time))
+            .attr("cy", d => y(d.PG))
+            .attr("r", 4)
+            .attr("fill", "steelblue")
+            .on("mouseover", function (event, d) {
+                d3.select(this)
+                    .attr("r", 6)
+                    .attr("fill", "orange");
+            })
+            .on("mouseout", function (event, d) {
+                d3.select(this)
+                    .attr("r", 4)
+                    .attr("fill", "steelblue");
+            });
+    }
+</script>
+
+</body>
+</html>
