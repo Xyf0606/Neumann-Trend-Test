@@ -8,7 +8,7 @@ using namespace std;
 int main () 
 {
     int x[1000], y[1000], n;//定义整型变量和数组 ；Define integer variables and arrays.
-    float p[1000], PG[1000];//定义浮点数 ； Define floats.
+    float p[]={0.7805, 0.8204, 0.8902, 0.9359}, PG[1000];//定义浮点数且p数组作为纽曼趋势标准值输入 ； Define floats and assign p as Neumann Trend Standard W(P).
     char s[1000][10], t[1000][10], r[1000][10], o[1000][10];
     char str1[10] = "yes", str2[10] = "no", str3[10] = "--";//定义字符数组 ；Define character arrays.
     
@@ -18,10 +18,6 @@ int main ()
     strcpy(o[0], str3); 
     strcpy(o[1], str3);
     strcpy(o[2], str3);//前3个数据的纽曼趋势无返回结果 ；Ensure consistent indexing with 0-based arrays
-    p[0] = 0.7805;
-    p[1] = 0.8204;
-    p[2] = 0.8902;
-    p[3] = 0.9359;//p数组作为纽曼趋势标准值输入；Assign p as Neumann Trend Standard W(P).
     
     cout << "Time(h): ";
     for (int a = 0; a < n; ++a) 
