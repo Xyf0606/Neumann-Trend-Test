@@ -46,8 +46,8 @@ int main()
     // There are (n-3) testing groups in total and for each group algorithm processes (i+1) data points for caculation.
     for (int i = 3; i < n; ++i)
     {
-        int sum_area = 0;
-        double sum_numer = 0, sum_denomin = 0, avg = 0; // Initialize variables before each prior loop conducted.
+        int sum_area = 0, sum_numer = 0;
+        double sum_denomin = 0, avg = 0; // Initialize variables before each prior loop conducted.
         for (int j = 0; j <= i; ++j)
         {
             sum_area += area[j]; // Return sum_area for every (i+1) encapsulation areas in a group.
@@ -61,7 +61,7 @@ int main()
             }
             sum_denomin += pow(area[k] - avg, 2); // Return sum_numer for numerator and sum_denomin for denominator in accordance with the Neumann Formula.
         }
-        PG[i] = static_cast<float>(sum_numer) / sum_denomin; // Return PG for Neumann Trend for every (i+1) data points.
+        PG[i] = static_cast<double>(sum_numer) / sum_denomin; // Return PG for Neumann Trend for every (i+1) data points.
     }
 
     for (int a = 0; a < n; ++a)
