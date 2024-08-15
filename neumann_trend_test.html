@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neumann Trend Test</title>
     <style>
-        /* 基本样式设置 */
+        /* Basic style settings */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -59,12 +59,12 @@
 
 <div class="container">
     <h1>Neumann Trend Test</h1>
-    <!-- 用户输入数据的输入框 -->
+    <!-- Input fields for user data -->
     <input type="text" id="dataInput" placeholder="Enter data points separated by commas">
     <input type="text" id="timeInput" placeholder="Enter time separated by commas">
-    <!-- 执行纽曼测试的按钮 -->
+    <!-- Button to perform Neumann test -->
     <button onclick="performNeumannTest()">Perform Test</button>
-    <!-- 结果表格 -->
+     <!-- Result table -->
     <table id="resultTable" style="display:none;">
         <thead>
             <tr>
@@ -75,16 +75,16 @@
             </tr>
         </thead>
         <tbody id="resultBody">
-            <!-- 结果将插入到这里 -->
+            <!-- Results will be inserted here -->
         </tbody>
     </table>
-    <!-- 用于绘制图表的区域 -->
+    <!-- Area for drawing the chart -->
     <div id="chart"></div>
 </div>
 
 <script>
     function performNeumannTest() {
-        // 获取用户输入的数据点和时间点
+        // Get user input for data points and time
         const dataInput = document.getElementById('dataInput').value;
         const timeInput = document.getElementById('timeInput').value;
         
@@ -92,7 +92,7 @@
             return alert('Please enter both data points and time.');
         }
         
-        // 将数据和时间转换为数组
+        // Convert data and time to arrays
         const data = dataInput.split(',').map(Number);
         const time = timeInput.split(',').map(Number);
         const n = data.length;
@@ -101,80 +101,81 @@
             return alert('Please enter at least 4 data points and ensure they match the number of time entries.');
         }
 
-        // 纽曼趋势标准值 (这些值可以根据需要调整)
+        // Neumann trend standard values (these can be adjusted as needed)
         const p = [0.7805, 0.8204, 0.8902, 0.9359];
         let resultHTML = '';
         let trendData = [];
 
-        // 计算每个数据集的PG值和趋势
+        // Calculate PG values and trends for each data set
         for (let i = 3; i < n; i++) {
             let sum0 = 0, sum1 = 0, sum2 = 0;
 
-            // 计算x0的值
+            // Calculate the value of avg
             for (let j = 0; j <= i; j++) {
                 sum0 += data[j];
             }
-            const x0 = sum0 / (i + 1);
+            const avg = sum0 / (i + 1);
 
-            // 计算sum1和sum2
+            // Calculate sum1 and sum2
             for (let k = 0; k <= i; k++) {
                 if (k < i) sum1 += Math.pow((data[k] - data[k + 1]), 2);
-                sum2 += Math.pow((data[k] - x0), 2);
+                sum2 += Math.pow((data[k] - avg), 2);
             }
 
-            // 计算PG值
+            // Calculate PG value
             const PG = sum1 / sum2;
-            const trend = PG <= p[i - 3] ? 'Yes' : 'No';  // 判断是否存在下降趋势
+            const trend = PG <= p[i - 3] ? 'Yes' : 'No';  // Determine if there is a downward trend
             trendData.push({ time: time[i], PG: PG  });
-            //6147338,6147785,6154157,6141375,6127575,6118354,6090916    0,1,2,5,10,18,24
-            //6126811,6120857,6112046,6100250,6089047,6070963,6057447
-            //7582457,7586934,7570156,7553261,7549265     0,2,5,10,24
-            //7342482,7311815,7308719,7282647,7283729
 
-            // 将结果插入表格
+            // Insert results into the table
             resultHTML += `<tr>
                 <td>${data[i]}</td>
                 <td>${time[i]}</td>
                 <td>${PG.toFixed(4)}</td>
                 <td>${trend}</td>
             </tr>`;
+	    // Input Example : 
+            // 6147338,6147785,6154157,6141375,6127575,6118354,6090916  ；  0,1,2,5,10,18,24
+            // 6126811,6120857,6112046,6100250,6089047,6070963,6057447
+            // 7582457,7586934,7570156,7553261,7549265   ；  0,2,5,10,24
+            // 7342482,7311815,7308719,7282647,7283729
         }
 
-        // 显示结果表格
+        // Display the result table
         document.getElementById('resultBody').innerHTML = resultHTML;
         document.getElementById('resultTable').style.display = 'table';
 
-        // 绘制图表
+        // Draw the chart
         drawChart(trendData);
     }
 
     function drawChart(data) {
-        // 设置图表的尺寸和边距
+        // Set chart dimensions and margins
         const margin = { top: 20, right: 30, bottom: 80, left: 50 };
         const width = 800 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
 
-        // 清除之前的图表
+        // Clear previous chart
         d3.select("#chart").html("");
 
-        // 创建SVG容器
+        // Create SVG container
         const svg = d3.select("#chart").append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // 设置x轴
+        // Set x-axis
         const x = d3.scaleLinear()
             .domain([0, d3.max(data, d => d.time)])
             .range([0, width]);
 
-        // 设置y轴
+        // Set y-axis
         const y = d3.scaleLinear()
             .domain([0, d3.max(data, d => d.PG)])
             .range([height, 0]);
 
-        // 绘制x轴
+        // Draw x-axis
         svg.append("g")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x).ticks(24))
@@ -182,11 +183,11 @@
             .attr("transform", "rotate(-45)")
             .style("text-anchor", "end");
 
-        // 绘制y轴
+        // Draw y-axis
         svg.append("g")
             .call(d3.axisLeft(y));
 
-	//添加轴标签
+	// Add axis labels
         svg.append("text")
             .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 35) + ")")
             .style("text-anchor", "middle")
@@ -200,7 +201,7 @@
             .style("text-anchor", "middle")
             .text("PG Value");
 
-        // 绘制折线
+        // Draw the line
         svg.append("path")
             .datum(data)
             .attr("fill", "none")
@@ -211,7 +212,7 @@
                 .y(d => y(d.PG))
             );
 
-        // 绘制数据点
+        // Draw data points
         svg.selectAll(".dot")
             .data(data)
             .enter().append("circle")
